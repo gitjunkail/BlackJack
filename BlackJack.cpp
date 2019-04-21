@@ -1,33 +1,32 @@
 #include <iostream>
-#include <ctype.h>
 #include <time.h>
 
-int Dealer(int dealer_total)
+int Actor(int card_total, int& ace)
 {
-	int dealer = rand() % 11 + 1;
-	dealer_total = dealer + dealer_total;
-	std::cout << "dealer " << dealer_total << "\n";
+	int card = rand() % 10 + 1; //1 to 10
+	if (card == 1)
+	{
+		ace++;
+		card_total = 11 + card_total;
+		std::cout << "you got an ace! your total is now ";
+	}
+	else
+	card_total = card + card_total;
 
-	return dealer_total;
-}
+	if (card_total > 21 && ace > 0)
+	{		
+		ace--;
+		card_total = card_total - 10;
+		std::cout << "...\nace value changed from 11 to 1, your total is now: " << card_total << "\n";
+	}
 
-int Player(int player_total)
-{
-	int player = rand() % 11 + 1;
-	player_total = player + player_total;
-	std::cout << "player " << player_total << "\n";
-
-	return player_total;
+	std::cout << card_total << "\n";
+	return card_total;
 }
 
 void EndGameCalculation(int player_total, int dealer_total)
 {
-
-	if (player_total > 21) //dealer doesnt bust
-	{
-		std::cout << "Bust!\n";
-	}
-	else if (player_total > dealer_total)
+	if (dealer_total > 21 || player_total > dealer_total)
 	{
 		std::cout << "Player Wins!\n";
 	}
@@ -41,31 +40,42 @@ void EndGameCalculation(int player_total, int dealer_total)
 	}
 }
 
-//dealer rule: always have a minimum of 17
 int main()
 {
 	//start seeding for randomness
-	srand((unsigned int)time(NULL)); //static_cast<unsigned int>(time(NULL))
+	srand((unsigned int)time(NULL));
 
-    std::cout << "Black Jack Game\n"; 
+    std::cout << "Welcome to Black Jack\n"; 
+	int ace = 0;
 	int dealer_total = 0;
 	int player_total = 0;
-	char player_continue = 'y';
+	char player_continue;
 
+	//Player rule: Must have less than 22 and more than the Dealer
+	do {
+		std::cout << "Player: ";
+		player_total = Actor(player_total, ace);
 
-	while (player_continue == 'y')
-	{
-		player_total = Player(player_total);
+		if (player_total < 22)
+		{
+			std::cout << "deal another card? Y or N? ";
+			std::cin >> player_continue;
+		}
+		else
+		{
+			std::cout << "Bust!\n";
+			return 0;
+		}
 
-		std::cout << "deal another card? Y or N? ";
-		std::cin >> player_continue;
-		player_continue = tolower(player_continue);
-	}
+	} while (player_continue == 'y' || player_continue == 'Y');
 
-	while (dealer_total < 17)
-	{
-		dealer_total = Dealer(dealer_total);
-	}
+	ace = 0;
+
+	//Dealer rule: Must have more than 16
+	do {
+		std::cout << "Dealer: ";
+		dealer_total = Actor(dealer_total, ace);
+	} while (dealer_total < 17);
 
 	EndGameCalculation(player_total, dealer_total);
 
