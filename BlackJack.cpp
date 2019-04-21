@@ -59,18 +59,13 @@ class Players
 public:
 	int total;
 
-	void Play(int& ace)
+	void Play(int card, int& ace)
 	{
-		int card = rand() % 13 + 1; //1 to 13
 		if (card == 1)
 		{
 			ace++;
 			total += 11;
 			std::cout << "you got an ace! your total is now ";
-		}
-		else if (card == 11 /*jack*/ || card == 12 /*queen*/ || card == 13 /*king*/ )
-		{
-			total += 10;
 		}
 		else
 			total += card;
@@ -115,7 +110,9 @@ int main()
 		do {
 
 			std::cout << "\nPlayer " << player_number << ": ";
-			player[player_number].Play(ace);
+			player[player_number].Play((int)Decks.m_vi32_decks_of_cards[0], ace);
+			Decks.m_vi32_decks_of_cards.erase(Decks.m_vi32_decks_of_cards.begin());
+
 			if (player[player_number].total == 21) //Go to the next player if current player gets Black Jack
 			{
 				std::cout << "Player " << player_number << ": Black Jack! \n";
@@ -141,7 +138,8 @@ int main()
 	std::cout << "\n";
 	do {
 		std::cout << "Dealer: ";
-		player[0].Play(ace);
+		player[0].Play((int)Decks.m_vi32_decks_of_cards[0], ace);
+		Decks.m_vi32_decks_of_cards.erase(Decks.m_vi32_decks_of_cards.begin());
 	} while (player[0].total < 17);
 
 
