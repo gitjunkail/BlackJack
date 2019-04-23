@@ -1,9 +1,9 @@
-#include <iostream>		//cout & cin
+#include <iostream>		//std::cout & std::cin
 #include <ctime>		//std::time
+#include <random>		//std::default_random_engine
 #include <vector>		//std::vector
-#include <algorithm>	//std::random_shuffle
 
-void EndGameCalculation(int player_number,  int player_total, int dealer_total)
+void EndGameCalculation(const int player_number, const int player_total, const int dealer_total)
 {
 	if (player_total < 22 && (dealer_total > 21 || player_total > dealer_total))
 	{
@@ -13,7 +13,7 @@ void EndGameCalculation(int player_number,  int player_total, int dealer_total)
 	{
 		std::cout << "\nPlayer " << player_number << " Lost!";
 	}
-	else if (player_total = dealer_total)
+	else if (player_total == dealer_total)
 	{
 		std::cout << "\nPlayer " << player_number << " is tie with the Dealer!";
 	}
@@ -24,13 +24,13 @@ class DecksGenerator
 public:
 	std::vector<int> m_vi32_decks_of_cards;
 
-	DecksGenerator(int how_many_decks)
+	DecksGenerator(const int how_many_decks, const unsigned int seed)
 	{
-		for (int counter_decks = 0; counter_decks < how_many_decks; counter_decks++)
+		for (auto counter_decks = 0; counter_decks < how_many_decks; counter_decks++)
 		{
-			for (int counter_suit = 1; counter_suit <= 4; counter_suit++)
+			for (auto counter_suit = 1; counter_suit <= 4; counter_suit++)
 			{
-				for (int counter_face = 1; counter_face <= 13; counter_face++)
+				for (auto counter_face = 1; counter_face <= 13; counter_face++)
 				{
 					if (counter_face == 1)
 					{
@@ -49,7 +49,8 @@ public:
 		}
 
 		std::cout << "\nshuffling deck(s)\n";
-		std::random_shuffle(m_vi32_decks_of_cards.begin(), m_vi32_decks_of_cards.end());
+		std::shuffle(m_vi32_decks_of_cards.begin(), m_vi32_decks_of_cards.end(), std::default_random_engine(seed));
+
 		std::cout << "done shuffling deck(s)\n";
 	}
 };
@@ -59,7 +60,7 @@ class Players
 public:
 	int total;
 
-	void Play(int card, int& ace)
+	void Play(const int card, int& ace)
 	{
 		if (card == 1)
 		{
@@ -83,13 +84,13 @@ public:
 
 int main()
 {
-	//start seeding for randomness
-	srand((unsigned int)std::time(0));
+	//start a time-based seed
+	const auto random_seed = static_cast<unsigned int>(std::time(nullptr));
 
-	std::cout << "Welcome to Black Jack\n"; 
-	int ace = 0;
-	int amount_of_players = 0;
-	int amount_of_decks = 0;
+	std::cout << "Welcome to Black Jack\n";
+	auto ace = 0;
+	auto amount_of_players = 0;
+	auto amount_of_decks = 0;
 
 
 	std::cout << "How many players? ";
@@ -100,17 +101,17 @@ int main()
 
 	std::cout << "How many decks? ";
 	std::cin >> amount_of_decks;
-	DecksGenerator Decks(amount_of_decks);
+	DecksGenerator Decks(amount_of_decks, random_seed);
 
 
 	//Players rule: Must have less than 22 and more than the Dealer to win
-	for (int player_number = 1; player_number < amount_of_players; player_number++)
+	for (auto player_number = 1; player_number < amount_of_players; player_number++)
 	{
 		char player_continue;
-		do {
-
+		do
+		{
 			std::cout << "\nPlayer " << player_number << ": ";
-			player[player_number].Play((int)Decks.m_vi32_decks_of_cards[0], ace);
+			player[player_number].Play(static_cast<int>(Decks.m_vi32_decks_of_cards[0]), ace);
 			Decks.m_vi32_decks_of_cards.erase(Decks.m_vi32_decks_of_cards.begin());
 
 			if (player[player_number].total == 21) //Go to the next player if current player gets Black Jack
@@ -118,7 +119,7 @@ int main()
 				std::cout << "Player " << player_number << ": Black Jack! \n";
 				break;
 			}
-			else if (player[player_number].total < 22) //Ask if the current player wants another card
+			if (player[player_number].total < 22) //Ask if the current player wants another card
 			{
 				std::cout << "Player " << player_number << ": deal another card? Y or N? ";
 				std::cin >> player_continue;
@@ -128,7 +129,8 @@ int main()
 				std::cout << "Player " << player_number << ": Bust! You lose!\n";
 				break;
 			}
-		} while (player_continue == 'y' || player_continue == 'Y'); //go to the next player if player do not want to continue
+		} while (player_continue == 'y' || player_continue == 'Y');
+		//go to the next player if player do not want to continue
 
 		ace = 0; //reset ace counter
 	}
@@ -136,15 +138,16 @@ int main()
 
 	//Dealer rule: Stop getting cards after having more than 16
 	std::cout << "\n";
-	do {
+	do
+	{
 		std::cout << "Dealer: ";
-		player[0].Play((int)Decks.m_vi32_decks_of_cards[0], ace);
+		player[0].Play(static_cast<int>(Decks.m_vi32_decks_of_cards[0]), ace);
 		Decks.m_vi32_decks_of_cards.erase(Decks.m_vi32_decks_of_cards.begin());
 	} while (player[0].total < 17);
 
 
 	//End Game Calculation
-	for (int player_number = 1; player_number < amount_of_players; player_number++)
+	for (auto player_number = 1; player_number < amount_of_players; player_number++)
 	{
 		EndGameCalculation(player_number, player[player_number].total, player[0].total);
 	}
