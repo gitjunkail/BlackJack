@@ -1,9 +1,10 @@
+#include "BlackJack.h"
+
 #include <iostream>		//std::cout & std::cin
 #include <ctime>		//std::time
 #include <random>		//std::default_random_engine
-#include <vector>		//std::vector
 
-void EndGameCalculation(const int player_number, const int player_total, const int dealer_total)
+void BlackJack::EndGameCalculation(const int& player_number, const int& player_total, const int& dealer_total)
 {
 	if (player_total < 22 && (dealer_total > 21 || player_total > dealer_total))
 	{
@@ -19,73 +20,68 @@ void EndGameCalculation(const int player_number, const int player_total, const i
 	}
 }
 
-class DecksGenerator
+std::vector<int> BlackJack::DecksGenerator(const int& how_many_decks, const unsigned int& seed)
 {
-public:
 	std::vector<int> m_vi32_decks_of_cards;
 
-	DecksGenerator(const int how_many_decks, const unsigned int seed)
+	for (auto counter_decks = 0; counter_decks < how_many_decks; counter_decks++)
 	{
-		for (auto counter_decks = 0; counter_decks < how_many_decks; counter_decks++)
+		for (auto counter_suit = 1; counter_suit <= 4; counter_suit++)
 		{
-			for (auto counter_suit = 1; counter_suit <= 4; counter_suit++)
+			for (auto counter_face = 1; counter_face <= 13; counter_face++)
 			{
-				for (auto counter_face = 1; counter_face <= 13; counter_face++)
+				if (counter_face == 1)
 				{
-					if (counter_face == 1)
-					{
-						m_vi32_decks_of_cards.emplace_back(11);
-					}
-					else if (counter_face == 11 /*jack*/ || counter_face == 12 /*queen*/ || counter_face == 13 /*king*/)
-					{
-						m_vi32_decks_of_cards.emplace_back(10);
-					}
-					else
-					{
-						m_vi32_decks_of_cards.emplace_back(counter_face);
-					}
+					m_vi32_decks_of_cards.emplace_back(11);
+				}
+				else if (counter_face == 11 /*jack*/ || counter_face == 12 /*queen*/ || counter_face == 13 /*king*/)
+				{
+					m_vi32_decks_of_cards.emplace_back(10);
+				}
+				else
+				{
+					m_vi32_decks_of_cards.emplace_back(counter_face);
 				}
 			}
 		}
-
-		std::cout << "\nshuffling deck(s)\n";
-		std::shuffle(m_vi32_decks_of_cards.begin(), m_vi32_decks_of_cards.end(), std::default_random_engine(seed));
-
-		std::cout << "done shuffling deck(s)\n";
 	}
-};
 
-class Players
+	std::cout << "\nshuffling deck(s)\n";
+	std::shuffle(m_vi32_decks_of_cards.begin(), m_vi32_decks_of_cards.end(), std::default_random_engine(seed));
+
+	std::cout << "done shuffling deck(s)\n";
+
+	return m_vi32_decks_of_cards;
+}
+
+void Players::Play(const int& card, int& ace)
 {
-public:
-	int total;
-
-	void Play(const int card, int& ace)
+	if (card == 1)
 	{
-		if (card == 1)
-		{
-			ace++;
-			total += 11;
-			std::cout << "you got an ace! your total is now ";
-		}
-		else
-			total += card;
-
-		if (total > 21 && ace > 0)
-		{
-			ace--;
-			total -= 10;
-			std::cout << "...\nace value changed from 11 to 1, your total is now: " << total << "\n";
-		}
-
-		std::cout << total << "\n";
+		ace++;
+		total += 11;
+		std::cout << "you got an ace! your total is now ";
 	}
-};
+	else
+		total += card;
+
+	if (total > 21 && ace > 0)
+	{
+		ace--;
+		total -= 10;
+		std::cout << "...\nace value changed from 11 to 1, your total is now: " << total << "\n";
+	}
+
+	std::cout << total << "\n";
+}
 
 int main()
 {
 	//start a time-based seed
 	const auto random_seed = static_cast<unsigned int>(std::time(nullptr));
+
+	//initialize blackjack
+	BlackJack black_jack;
 
 	std::cout << "Welcome to Black Jack\n";
 	auto ace = 0;
@@ -101,7 +97,7 @@ int main()
 
 	std::cout << "How many decks? ";
 	std::cin >> amount_of_decks;
-	DecksGenerator Decks(amount_of_decks, random_seed);
+	std::vector<int> Decks = black_jack.DecksGenerator(amount_of_decks, random_seed);
 
 
 	//Players rule: Must have less than 22 and more than the Dealer to win
@@ -111,8 +107,8 @@ int main()
 		do
 		{
 			std::cout << "\nPlayer " << player_number << ": ";
-			player[player_number].Play(static_cast<int>(Decks.m_vi32_decks_of_cards[0]), ace);
-			Decks.m_vi32_decks_of_cards.erase(Decks.m_vi32_decks_of_cards.begin());
+			player[player_number].Play(static_cast<int>(Decks[0]), ace);
+			Decks.erase(Decks.begin());
 
 			if (player[player_number].total == 21) //Go to the next player if current player gets Black Jack
 			{
@@ -141,16 +137,18 @@ int main()
 	do
 	{
 		std::cout << "Dealer: ";
-		player[0].Play(static_cast<int>(Decks.m_vi32_decks_of_cards[0]), ace);
-		Decks.m_vi32_decks_of_cards.erase(Decks.m_vi32_decks_of_cards.begin());
+		player[0].Play(static_cast<int>(Decks[0]), ace);
+		Decks.erase(Decks.begin());
 	} while (player[0].total < 17);
-
 
 	//End Game Calculation
 	for (auto player_number = 1; player_number < amount_of_players; player_number++)
 	{
-		EndGameCalculation(player_number, player[player_number].total, player[0].total);
+		black_jack.EndGameCalculation(player_number, player[player_number].total, player[0].total);
 	}
+
+	std::cin.ignore();
+	std::cin.ignore(); //press any key to continue
 
 	return 0;
 }
